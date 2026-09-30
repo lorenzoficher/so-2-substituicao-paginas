@@ -1,0 +1,9 @@
+# Traces de entrada: dados externos e grandes (ver README)
+traces/
+
+# Build do simulador
+build/
+
+# Python
+__pycache__/
+.venv/
