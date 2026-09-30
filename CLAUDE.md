@@ -68,7 +68,7 @@ trace,policy,frames,history_bits,aging_interval,accesses,page_faults,writebacks
 make          # compila → build/sim
 make test     # compila e roda os testes
 make grid     # roda a grade de experimentos → results/<trace>.csv
-make plots    # gera results/figuras/*.pdf a partir dos CSV
+make plots    # gera results/figuras/*.png a partir dos CSV
 ```
 
 ## Semântica (não negociável)
