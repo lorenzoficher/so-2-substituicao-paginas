@@ -1,0 +1,2 @@
+# LF em tudo: o projeto compila e roda no WSL, onde CRLF quebra scripts bash e o Makefile.
+* text=auto eol=lf
