@@ -34,7 +34,8 @@ src/
   opt.{hpp,cpp}         class Opt (recebe o trace inteiro; próximo uso pré-computado)
   lru_approx.{hpp,cpp}  class LruApprox (recebe N e I)
   simulator.{hpp,cpp}   run(trace, policy) → {falhas, escritas de volta}
-  main.cpp              CLI + CSV no stdout
+  cli.{hpp,cpp}         run_cli: valida os argumentos, lê o trace uma vez, imprime o CSV
+  main.cpp              só chama run_cli com argv, stdout e stderr
 tests/                  doctest
 experiments/grid.conf   ÚNICO lugar com os valores da grade (traces, frames, pares N:I)
 scripts/                run_grid.sh (make grid) e plot.py (make plots)
