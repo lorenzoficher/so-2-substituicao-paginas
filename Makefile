@@ -28,7 +28,8 @@ $(BUILD)/tests/%.o: tests/%.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(DEPFLAGS) -Isrc -c -o $@ $<
 
-test: $(BUILD)/test_sim
+# The end-to-end tests run the binary, so it must exist first.
+test: $(BUILD)/sim $(BUILD)/test_sim
 	./$(BUILD)/test_sim
 
 clean:
