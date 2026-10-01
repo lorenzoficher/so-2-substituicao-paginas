@@ -9,7 +9,7 @@ secundária: escritas de volta (vítimas sujas).
 Entrega: **só o programa** (sem artigo). A interpretação dos resultados fica na
 seção "Resultados e análise" do `README.md`.
 
-Enunciado: `trabalho_memoria.md` (baseado em `https://www.inf.unioeste.br/~marcio/SO/Trabalho2Bim.pdf`,
+Enunciado: `docs/trabalho_memoria.md` (baseado em `https://www.inf.unioeste.br/~marcio/SO/Trabalho2Bim.pdf`,
 que pede só OPT e LRU aproximado — o FIFO é a terceira política escolhida aqui).
 
 ## Stack
