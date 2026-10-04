@@ -48,6 +48,19 @@ TEST_CASE("CLI: FIFO imprime o cabeçalho e uma linha de CSV por número de fram
           "belady,fifo,4,,,12,10,0\n");
 }
 
+TEST_CASE("CLI: OPT imprime o CSV no mesmo formato do FIFO") {
+    write_sample_trace();
+
+    const CliRun result = run({SAMPLE_TRACE, "opt", "--frames", "3,4"});
+
+    CHECK(result.exit_code == 0);
+    CHECK(result.err.empty());
+    CHECK(result.out ==
+          "trace,policy,frames,history_bits,aging_interval,accesses,page_faults,writebacks\n"
+          "belady,opt,3,,,12,7,0\n"
+          "belady,opt,4,,,12,6,0\n");
+}
+
 TEST_CASE("CLI: argumento inválido dá erro de uso no stderr, sem nenhuma linha de CSV") {
     write_sample_trace();
     const std::vector<std::vector<std::string>> invalid = {

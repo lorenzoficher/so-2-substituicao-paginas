@@ -4,15 +4,17 @@
 #include <cstdint>
 #include <exception>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 
 #include "fifo.hpp"
+#include "opt.hpp"
 #include "simulator.hpp"
 #include "trace.hpp"
 
 namespace {
 
-const char* const USAGE = "uso: sim <trace> fifo --frames <n>[,<n>...]\n";
+const char* const USAGE = "uso: sim <trace> fifo|opt --frames <n>[,<n>...]\n";
 
 const char* const CSV_HEADER =
     "trace,policy,frames,history_bits,aging_interval,accesses,page_faults,writebacks";
@@ -74,7 +76,7 @@ Options parse_arguments(const std::vector<std::string>& args) {
     Options options;
     options.trace_path = args[0];
     options.policy = args[1];
-    if (options.policy != "fifo") {
+    if (options.policy != "fifo" && options.policy != "opt") {
         throw UsageError("política desconhecida: '" + options.policy + "'");
     }
     for (std::size_t i = 2; i < args.size(); i += 2) {
@@ -106,6 +108,16 @@ std::string trace_name(const std::string& path) {
     return name;
 }
 
+/// A fresh policy, frames empty, for one simulation of `trace`.
+/// @param policy A name already validated by parse_arguments.
+std::unique_ptr<Policy> make_policy(const std::string& policy, const Trace& trace,
+                                    std::size_t frame_count) {
+    if (policy == "opt") {
+        return std::make_unique<Opt>(trace, frame_count);
+    }
+    return std::make_unique<Fifo>(frame_count);
+}
+
 }  // namespace
 
 int run_cli(const std::vector<std::string>& args, std::ostream& out, std::ostream& err) {
@@ -128,8 +140,8 @@ int run_cli(const std::vector<std::string>& args, std::ostream& out, std::ostrea
     const std::string name = trace_name(options.trace_path);
     out << CSV_HEADER << '\n';
     for (const std::size_t frame_count : options.frame_counts) {
-        Fifo policy(frame_count);
-        const SimulationResult result = run(trace, policy);
+        const std::unique_ptr<Policy> policy = make_policy(options.policy, trace, frame_count);
+        const SimulationResult result = run(trace, *policy);
         out << name << ',' << options.policy << ',' << frame_count << ",,," << result.accesses
             << ',' << result.page_faults << ',' << result.writebacks << '\n';
     }
