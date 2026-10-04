@@ -7,7 +7,7 @@
  * - Read the trace once and run one simulation per number of frames.
  * - Print the CSV header and rows.
  *
- * Usage: sim <trace> fifo --frames 4,8,16
+ * Usage: sim <trace> fifo|opt --frames 4,8,16
  */
 #pragma once
 
