@@ -9,7 +9,7 @@ secundária: escritas de volta (vítimas sujas).
 Entrega: **só o programa** (sem artigo). A interpretação dos resultados fica na
 seção "Resultados e análise" do `README.md`.
 
-Enunciado: `trabalho_memoria.md` (baseado em `https://www.inf.unioeste.br/~marcio/SO/Trabalho2Bim.pdf`,
+Enunciado: `docs/trabalho_memoria.md` (baseado em `https://www.inf.unioeste.br/~marcio/SO/Trabalho2Bim.pdf`,
 que pede só OPT e LRU aproximado — o FIFO é a terceira política escolhida aqui).
 
 ## Stack
@@ -34,7 +34,8 @@ src/
   opt.{hpp,cpp}         class Opt (recebe o trace inteiro; próximo uso pré-computado)
   lru_approx.{hpp,cpp}  class LruApprox (recebe N e I)
   simulator.{hpp,cpp}   run(trace, policy) → {falhas, escritas de volta}
-  main.cpp              CLI + CSV no stdout
+  cli.{hpp,cpp}         run_cli: valida os argumentos, lê o trace uma vez, imprime o CSV
+  main.cpp              só chama run_cli com argv, stdout e stderr
 tests/                  doctest
 experiments/grid.conf   ÚNICO lugar com os valores da grade (traces, frames, pares N:I)
 scripts/                run_grid.sh (make grid) e plot.py (make plots)
