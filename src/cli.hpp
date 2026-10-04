@@ -8,6 +8,7 @@
  * - Print the CSV header and rows.
  *
  * Usage: sim <trace> fifo|opt --frames 4,8,16
+ *        sim <trace> lru-approx --bits 8 --interval 1000 --frames 4,8,16
  */
 #pragma once
 
