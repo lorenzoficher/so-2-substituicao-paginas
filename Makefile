@@ -31,6 +31,7 @@ $(BUILD)/tests/%.o: tests/%.cpp
 # The end-to-end tests run the binary, so it must exist first.
 test: $(BUILD)/sim $(BUILD)/test_sim
 	./$(BUILD)/test_sim
+	bash tests/test_grid.sh
 
 # Grade de experimentos/grid.conf → results/<trace>.csv.
 grid: $(BUILD)/sim
