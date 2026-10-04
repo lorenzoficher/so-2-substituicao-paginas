@@ -16,7 +16,7 @@
 struct SimulationResult {
     uint64_t accesses = 0;
     uint64_t page_faults = 0;
-    uint64_t writebacks = 0;  ///< Dirty victims; stays 0 until dirty tracking (#3).
+    uint64_t writebacks = 0;  ///< Dirty victims; pages still dirty at the end do not count.
 };
 
 /// Runs `trace` through `policy`, whose frames must start empty.
