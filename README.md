@@ -180,10 +180,12 @@ bzip com 10 frames (5,3 vezes, logo antes do salto de 10 para 12 frames). O LRU
 aproximado 8:100 fica **sempre entre os dois**, com posição de 0,30 a 0,99 em toda a grade, mas a
 vantagem dele sobre o FIFO depende muito do número de frames:
 
-- **Faixa intermediária (≈ 8 a 64 frames)** é onde ele mais se aproxima do OPT. No
-  swim chega a 0,35 em 32 frames (47 214 falhas de página, contra 81 638 do FIFO), no
-  sixpack fica estável em 0,55 de 8 a 32 frames e no gcc entre 0,65 e 0,68 de 16 a 64.
-- **Muitos frames (≥ 128)**: a posição sobe para 0,86–0,99 em todos os traces, ou seja,
+- **Até 64 frames** é onde ele mais se aproxima do OPT, mas o melhor ponto muda de
+  trace para trace. No bzip, a melhor posição é 0,30–0,37, com 6 a 10 frames, logo
+  antes do salto. No sixpack é 0,47 com 4 frames e fica perto de 0,55 até 32. No swim
+  chega a 0,35 com 32 frames (47 214 falhas de página, contra 81 638 do FIFO). No gcc
+  fica entre 0,65 e 0,68 de 16 a 64 frames.
+- **Muitos frames (≥ 128)**: a posição sobe para 0,81–0,99 em todos os traces, ou seja,
   o LRU aproximado **converge para o FIFO**. Com 8 bits de histórico e I = 100, uma
   página só guarda informação de uso dos últimos 8 × 100 = 800 acessos. Com centenas
   de frames, a maioria das páginas residentes não foi tocada nesse horizonte: todas
@@ -191,8 +193,9 @@ vantagem dele sobre o FIFO depende muito do número de frames:
   cai no último desempate, a página carregada há mais tempo, que é exatamente o FIFO.
   O experimento de sensibilidade confirma isso: aumentar o horizonte, por N ou por I,
   melhora o LRU aproximado justamente nessa faixa.
-- **Poucos frames no gcc (4 frames, posição 0,95)**: o gcc tem pouca localidade de
-  curto prazo. Mesmo o OPT erra 18,6% dos acessos com 4 frames, e quase não sobra
+- **Exceção: gcc com poucos frames (4 frames, posição 0,95).** Nos outros traces, 4
+  frames não é um caso ruim para o LRU aproximado (sixpack 0,47, swim 0,52), mas o
+  gcc tem pouca localidade de curto prazo. Mesmo o OPT erra 18,6% dos acessos com 4 frames, e quase não sobra
   recência para o LRU aproximado aproveitar.
 
 ### Onde as curvas se separam e onde saturam
@@ -275,7 +278,7 @@ Leitura:
   quase todas as páginas entre dois envelhecimentos e o histórico quase não muda. A
   política perde a informação de recência e chega a ficar pior que o FIFO em vários
   pontos de todos os traces (no swim, de 16 a 96 frames).
-- **Consequência.** Não existe um par N:I bom para todo tamanho de memória. O 8:100 é
+- **Consequência.** Não existe um par N:I bom para todo número de frames. O 8:100 é
   um compromisso que favorece a faixa de poucos frames e o joelho, onde as falhas de
   página são mais numerosas. Num sistema real, o intervalo de envelhecimento deveria
   acompanhar o tempo de residência das páginas, e não ser fixo.
@@ -319,12 +322,15 @@ Leitura:
   vítimas sujas, e nenhuma política olha o estado sujo/limpo para escolher a vítima.
   No bzip com 4 e 6 frames, o LRU aproximado faz **menos** escritas de volta que o OPT
   (30 059 contra 31 034 com 4 frames), mesmo com 43% mais falhas de página.
-- **swim escreve muito.** Com 4 a 14 frames, as escritas de volta do FIFO quase não
-  caem (57 750 → 53 555) enquanto as falhas de página caem para 58%. Até o OPT faz
-  53 858 escritas de volta com 4 frames, perto do FIFO. As páginas que o swim reusa são
-  escritas a cada passagem, então quase toda vítima está suja. As escritas de volta só
-  caem de verdade a partir de 16–20 frames, quando o conjunto de páginas em uso começa a
-  caber na memória.
+- **No swim, as escritas de volta não acompanham as falhas de página com poucos
+  frames.** No FIFO, de 4 para 14 frames, as escritas de volta quase não caem
+  (57 750 → 53 555) enquanto as falhas de página caem para 58% (419 509 → 242 630).
+  Com isso, a fração de vítimas sujas sobe de 14% para 22%. Os frames a mais evitam
+  sobretudo as falhas de página em páginas só lidas, e as páginas escritas continuam
+  saindo quase com a mesma frequência (hipótese, compatível com os números). No FIFO e
+  no LRU aproximado, as escritas de volta só caem de verdade a partir de 16–20 frames.
+  O OPT cai de forma contínua já com poucos frames (53 858 com 4 frames, 39 727 com
+  10 e 24 245 com 14).
 - Com muitos frames, as escritas de volta despencam: páginas sujas que nunca são
   escolhidas como vítima ficam sujas até o fim do trace, e essas não contam. No bzip
   com 384 frames, nenhuma página sai e o resultado é 0 escritas de volta.
@@ -367,8 +373,9 @@ fica fora das médias acima.
 ![Escritas de volta do bigone](results/figuras/bigone-escritas.png)
 
 - **As falhas de página do bigone são a soma das dos quatro traces.** Até 12 frames, a
-  soma é idêntica nas três políticas, falha por falha (ex.: FIFO com 4 frames:
-  1 202 780 nos dois casos), e nos demais pontos da tabela a diferença fica abaixo de
+  soma é idêntica no FIFO e no LRU aproximado, falha por falha (ex.: FIFO com 4
+  frames: 1 202 780 nos dois casos), e o OPT difere em no máximo 1 falha de página.
+  Nos demais pontos da tabela a diferença fica abaixo de
   0,2%. A exceção é o OPT com 256 e 512 frames, que fica 103 (0,5%) e 412 (3,2%)
   falhas de página abaixo da soma. Ou seja, as trocas de fase **não custam nada além das falhas compulsórias**
   que o programa novo teria de qualquer jeito. Em poucos acessos, o programa novo
@@ -376,7 +383,7 @@ fica fora das médias acima.
   segurando páginas da fase que acabou.
 - O pequeno ganho do OPT com muitos frames é consistente com as páginas compartilhadas
   entre os programas: o bigone tem 8254 páginas distintas, contra 9602 na soma dos
-  quatro. Com memória grande, uma página do fim de uma fase pode continuar residente e
+  quatro. Com muitos frames, uma página do fim de uma fase pode continuar residente e
   ser reusada pela fase seguinte.
 - Por isso a curva e a posição do bigone (0,50 a 0,98) são uma **mistura ponderada**
   das quatro: em que pesam mais, em cada número de frames, os traces com mais falhas de
@@ -390,11 +397,11 @@ fica fora das médias acima.
    disponível para uma política realizável.
 2. O LRU aproximado recupera parte desse espaço, até 70% (bzip com 10 frames; 65% no swim com 32), usando
    apenas um bit de referência e um histórico por página. Mas o ganho depende do
-   intervalo de envelhecimento estar ajustado ao tamanho da memória: com horizonte
+   intervalo de envelhecimento estar ajustado ao número de frames: com horizonte
    curto e muitos frames ele vira um FIFO, e com horizonte longo e poucos frames ele
    fica pior que o FIFO.
 3. O número de frames importa mais que a política até o joelho de cada trace. Depois
-   dele, a política volta a fazer diferença relativa (2 a 3 vezes), mas em números
-   absolutos bem menores.
+   dele, a política continua fazendo diferença relativa (o FIFO fica de 1,5 a 2,9 vezes
+   acima do OPT), mas em números absolutos bem menores.
 4. Escritas de volta seguem as falhas de página, mas não são minimizadas por nenhuma
    das três políticas, porque nenhuma considera páginas sujas na escolha da vítima.
