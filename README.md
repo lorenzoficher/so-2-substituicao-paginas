@@ -35,11 +35,11 @@ ordem `bzip`, `gcc`, `sixpack`, `swim` (todos com fim de linha LF, sem CRLF):
 ```bash
 cd traces
 wc -l *.trace
-md5sum bzip.trace gcc.trace sixpack.trace swim.trace
+md5sum bzip.trace gcc.trace sixpack.trace swim.trace bigone.trace
 for i in 0 1 2 3; do
     sed -n "$((i*1000000+1)),$(((i+1)*1000000))p" bigone.trace | md5sum
 done
-cat bzip.trace gcc.trace sixpack.trace swim.trace | md5sum   # = md5sum bigone.trace
+cat bzip.trace gcc.trace sixpack.trace swim.trace | md5sum   # igual ao md5 do bigone.trace acima
 ```
 
 | Bloco do bigone | Linhas              | md5                                | Trace igual |
