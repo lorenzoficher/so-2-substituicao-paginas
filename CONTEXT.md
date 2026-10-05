@@ -40,6 +40,10 @@ _Avoid_: Log, arquivo de entrada
 Uma linha do trace: um endereço de 32 bits em hexadecimal e uma operação (R para leitura, W para escrita).
 _Avoid_: Referência, requisição, instrução
 
+**Troca de fase**:
+Ponto do trace em que o conjunto de páginas em uso muda de forma abrupta. O `bigone` é a concatenação exata `bzip + gcc + sixpack + swim` (blocos de 1M de acessos, md5 conferido — ver README), então tem três trocas de fase: é uma carga com trocas de fase, não um quinto programa independente, e fica fora da média da varredura exploratória.
+_Avoid_: Mudança de contexto, troca de programa
+
 ### Políticas
 
 **Política de substituição**:
