@@ -10,7 +10,7 @@ LIB_OBJS  := $(LIB_SRCS:src/%.cpp=$(BUILD)/%.o)
 TEST_SRCS := $(wildcard tests/*.cpp)
 TEST_OBJS := $(TEST_SRCS:tests/%.cpp=$(BUILD)/tests/%.o)
 
-.PHONY: all test clean
+.PHONY: all test grid clean
 
 all: $(BUILD)/sim
 
@@ -31,6 +31,11 @@ $(BUILD)/tests/%.o: tests/%.cpp
 # The end-to-end tests run the binary, so it must exist first.
 test: $(BUILD)/sim $(BUILD)/test_sim
 	./$(BUILD)/test_sim
+	bash tests/test_grid.sh
+
+# Grade de experimentos/grid.conf → results/<trace>.csv.
+grid: $(BUILD)/sim
+	bash scripts/run_grid.sh
 
 clean:
 	rm -rf $(BUILD)
