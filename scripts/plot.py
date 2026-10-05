@@ -180,6 +180,35 @@ def _save(fig: plt.Figure, path: Path) -> Path:
     return path
 
 
+def main_curves(trace: str, rows: list[Row], reference: tuple[int, int]
+                ) -> dict[str, tuple[list[int], list[int], list[int]]]:
+    """Curvas do experimento principal: FIFO, OPT e o par de referência.
+
+    Args:
+        trace: Nome do trace (só para a mensagem de erro).
+        rows: Simulações do trace.
+        reference: Par de referência (N, I) do LRU aproximado.
+
+    Returns:
+        Por política, frames, falhas de página e escritas de volta.
+
+    Raises:
+        PlotError: Falta FIFO, OPT ou o par de referência no CSV.
+    """
+    ref_bits, ref_interval = reference
+    curves = {
+        "fifo": _series(rows, "fifo"),
+        "opt": _series(rows, "opt"),
+        "lru-approx": _series(rows, "lru-approx", ref_bits, ref_interval),
+    }
+    for policy, (frames, _, _) in curves.items():
+        if not frames:
+            what = (f"par de referência N={ref_bits}, I={ref_interval}"
+                    if policy == "lru-approx" else POLICY_LABELS[policy])
+            raise PlotError(f"trace '{trace}': {what} ausente no CSV — rode `make grid`")
+    return curves
+
+
 def plot_trace(trace: str, rows: list[Row], reference: tuple[int, int],
                out_dir: Path) -> list[Path]:
     """Gera as três figuras de um trace.
@@ -197,31 +226,26 @@ def plot_trace(trace: str, rows: list[Row], reference: tuple[int, int],
         PlotError: Falta FIFO, OPT ou o par de referência no CSV.
     """
     ref_bits, ref_interval = reference
-    curves = {
-        "fifo": _series(rows, "fifo"),
-        "opt": _series(rows, "opt"),
-        "lru-approx": _series(rows, "lru-approx", ref_bits, ref_interval),
-    }
-    for policy, (frames, _, _) in curves.items():
-        if not frames:
-            what = (f"par de referência N={ref_bits}, I={ref_interval}"
-                    if policy == "lru-approx" else POLICY_LABELS[policy])
-            raise PlotError(f"trace '{trace}': {what} ausente no CSV — rode `make grid`")
+    curves = main_curves(trace, rows, reference)
     all_frames = sorted({r.frames for r in rows})
     ref_label = f"{POLICY_LABELS['lru-approx']} (N={ref_bits}, I={ref_interval})"
     out_dir.mkdir(parents=True, exist_ok=True)
     paths = []
 
-    for metric, index, ylabel, suffix in (
-        ("falhas", 1, "Falhas de página", "falhas"),
-        ("escritas", 2, "Escritas de volta", "escritas"),
+    # Falhas nunca chegam a zero (as compulsórias contam); escritas de volta chegam,
+    # e o eixo log descartaria esses pontos — symlog é linear perto do zero.
+    for index, ylabel, suffix, yscale in (
+        (1, "Falhas de página", "falhas", {"value": "log"}),
+        (2, "Escritas de volta", "escritas", {"value": "symlog", "linthresh": 1}),
     ):
         fig, ax = plt.subplots(figsize=(8, 5))
         for policy, series in curves.items():
             label = ref_label if policy == "lru-approx" else POLICY_LABELS[policy]
             ax.plot(series[0], series[index], marker="o", markersize=4, label=label)
         _frames_axis(ax, all_frames)
-        ax.set_yscale("log")
+        ax.set_yscale(**yscale)
+        if suffix == "escritas":
+            ax.set_ylim(bottom=0)
         ax.set_ylabel(ylabel)
         ax.set_title(f"{trace}: {ylabel.lower()} × número de frames")
         ax.legend()
@@ -270,6 +294,10 @@ def main(grid_conf: Path = ROOT / "experiments" / "grid.conf",
     try:
         conf = read_grid_conf(grid_conf)
         data = {t: load_results(results_dir / f"{t}.csv") for t in conf.traces}
+        # Valida todos os traces antes de gravar qualquer figura: um erro no meio
+        # não pode deixar results/figuras/ com metade nova e metade antiga.
+        for trace, rows in data.items():
+            main_curves(trace, rows, conf.reference)
         for trace, rows in data.items():
             for path in plot_trace(trace, rows, conf.reference, results_dir / "figuras"):
                 print(path, file=sys.stderr)

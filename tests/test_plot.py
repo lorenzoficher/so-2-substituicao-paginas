@@ -100,6 +100,14 @@ class TestErrors(PlotTestCase):
         self.grid_conf.write_text(GRID_CONF.replace("8:100 2:100", "16:100 2:100"))
         self.assert_fails_with("par de referência", "N=16", "I=100")
 
+    def test_par_ausente_em_um_trace_nao_gera_figura_de_nenhum(self) -> None:
+        (self.results / "toy.csv").write_text(CSV_TOY)
+        sem_referencia = [line.replace("toy,", "outro,") for line in CSV_TOY.splitlines()
+                          if ",8,100," not in line]
+        (self.results / "outro.csv").write_text("\n".join(sem_referencia) + "\n")
+        self.grid_conf.write_text(GRID_CONF.replace('"toy"', '"toy outro"'))
+        self.assert_fails_with("outro", "par de referência")
+
 
 if __name__ == "__main__":
     unittest.main()
