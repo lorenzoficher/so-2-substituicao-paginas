@@ -10,7 +10,7 @@ LIB_OBJS  := $(LIB_SRCS:src/%.cpp=$(BUILD)/%.o)
 TEST_SRCS := $(wildcard tests/*.cpp)
 TEST_OBJS := $(TEST_SRCS:tests/%.cpp=$(BUILD)/tests/%.o)
 
-.PHONY: all test grid clean
+.PHONY: all test test-plots grid plots clean
 
 all: $(BUILD)/sim
 
@@ -36,6 +36,15 @@ test: $(BUILD)/sim $(BUILD)/test_sim
 # Grade de experimentos/grid.conf → results/<trace>.csv.
 grid: $(BUILD)/sim
 	bash scripts/run_grid.sh
+
+# Figuras results/figuras/*.png a partir dos CSV (Python + matplotlib).
+plots:
+	python3 scripts/plot.py
+
+# Testes do script de gráficos — exigem python3 + matplotlib, por isso ficam fora
+# do `make test`, que só precisa de g++ e make.
+test-plots:
+	python3 -m unittest discover -s tests -p 'test_*.py'
 
 clean:
 	rm -rf $(BUILD)
