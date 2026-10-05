@@ -1,7 +1,7 @@
 # Par de referência 8:100 e grade de frames densa na faixa baixa
 
-**Status:** Proposta — aguardando aprovação do aluno. Nada aqui foi aplicado ao
-`experiments/grid.conf` nem aos `results/` (issue #9).
+**Status:** Aceita — 8:100 aprovado pelo aluno e aplicado ao `experiments/grid.conf`
+(issue #9).
 
 Os valores provisórios da grade (par de referência 8:1000, frames 4..256 dobrando)
 foram fixados sem dados. Uma varredura exploratória sobre os quatro traces
@@ -9,7 +9,7 @@ independentes (bzip, gcc, sixpack, swim; bigone fica de fora) mostrou que o
 **intervalo de envelhecimento** é o parâmetro que mais pesa: com I = 1000 o LRU
 aproximado fica **pior que o FIFO** em 8 pontos da grade (bzip com 12–16 frames, gcc
 com 4–12), enquanto com I = 100 ele fica entre o OPT e o FIFO em todos os pontos, para
-qualquer N. Por isso propomos **8:100** como par de referência, uma grade de frames
+qualquer N. Por isso escolhemos **8:100** como par de referência, uma grade de frames
 densa até 32 e estendida até 512, e pares de sensibilidade que variam N com I = 100 e
 I com N = 8.
 
@@ -85,7 +85,7 @@ Leitura:
 - Na grade antiga (4..256 dobrando) o 8:1000 parecia razoável (0,749) — os pontos em
   que ele perde para o FIFO estão justamente nos frames que a grade pulava.
 
-## Proposta
+## Decisão
 
 - **Par de referência: 8:100.** Fica a 0,04 do melhor par varrido (32:100), nunca
   perde para o FIFO e mantém o histórico de 8 bits. 32:100 seria a alternativa se a
